@@ -20,7 +20,7 @@
 
 namespace cura
 {
-    
+
 void print_usage()
 {
     cura::logError("\n");
@@ -69,7 +69,7 @@ void connect(int argc, char **argv)
     CommandSocket* commandSocket = new CommandSocket();
     std::string ip;
     int port = 49674;
-    
+
     std::string ip_port(argv[2]);
     if (ip_port.find(':') != std::string::npos)
     {
@@ -77,7 +77,7 @@ void connect(int argc, char **argv)
         port = std::stoi(ip_port.substr(ip_port.find(':') + 1).data());
     }
 
-    
+
     for(int argn = 3; argn < argc; argn++)
     {
         char* str = argv[argn];
@@ -106,21 +106,21 @@ void connect(int argc, char **argv)
             }
         }
     }
-    
+
     commandSocket->connect(ip, port);
 }
 
 void slice(int argc, char **argv)
-{   
+{
     FffProcessor::getInstance()->time_keeper.restart();
-    
+
     FMatrix3x3 transformation; // the transformation applied to a model when loaded
-                        
+
     MeshGroup* meshgroup = new MeshGroup(FffProcessor::getInstance());
-    
+
     int extruder_train_nr = 0;
 
-    SettingsBase* last_extruder_train = meshgroup->createExtruderTrain(0); 
+    SettingsBase* last_extruder_train = meshgroup->createExtruderTrain(0);
     SettingsBase* last_settings_object = FffProcessor::getInstance();
     for(int argn = 2; argn < argc; argn++)
     {
@@ -136,28 +136,28 @@ void slice(int argc, char **argv)
                         // Only ClipperLib currently throws exceptions. And only in case that it makes an internal error.
                         meshgroup->finalize();
                         log("Loaded from disk in %5.3fs\n", FffProcessor::getInstance()->time_keeper.restart());
-                        
+
                         for (int extruder_nr = 0; extruder_nr < FffProcessor::getInstance()->getSettingAsCount("machine_extruder_count"); extruder_nr++)
                         { // initialize remaining extruder trains and load the defaults
                             meshgroup->getExtruderTrain(extruder_nr)->setExtruderTrainDefaults(extruder_nr); // create new extruder train objects or use already existing ones
                         }
                         //start slicing
                         FffProcessor::getInstance()->processMeshGroup(meshgroup);
-                        
+
                         // initialize loading of new meshes
                         FffProcessor::getInstance()->time_keeper.restart();
                         delete meshgroup;
                         meshgroup = new MeshGroup(FffProcessor::getInstance());
-                        last_extruder_train = meshgroup->createExtruderTrain(0); 
+                        last_extruder_train = meshgroup->createExtruderTrain(0);
                         last_settings_object = meshgroup;
-                        
+
                     }catch(...){
                         cura::logError("Unknown exception\n");
                         exit(1);
                     }
                 }else{
                     cura::logError("Unknown option: %s\n", str);
-                }
+                } //end of --next
             }else{
                 for(str++; *str; str++)
                 {
@@ -176,23 +176,23 @@ void slice(int argc, char **argv)
                             cura::logError("ERROR: Failed to load json file: %s\n", argv[argn]);
                         }
                         break;
-                    case 'e':
+                    case 'e': //add a new extruder train
                         str++;
-                        extruder_train_nr = int(*str - '0'); // TODO: parse int instead (now "-e10"="-e:" , "-e11"="-e;" , "-e12"="-e<" .. etc) 
+                        extruder_train_nr = int(*str - '0'); // TODO: parse int instead (now "-e10"="-e:" , "-e11"="-e;" , "-e12"="-e<" .. etc)
                         last_settings_object = meshgroup->createExtruderTrain(extruder_train_nr);
                         last_extruder_train = last_settings_object;
                         break;
                     case 'l':
                         argn++;
-                        
+
                         log("Loading %s from disk...\n", argv[argn]);
                         // transformation = // TODO: get a transformation from somewhere
-                        
+
                         if (!loadMeshIntoMeshGroup(meshgroup, argv[argn], transformation, last_extruder_train))
                         {
                             logError("Failed to load model: %s\n", argv[argn]);
                         }
-                        else 
+                        else
                         {
                             last_settings_object = &(meshgroup->meshes.back()); // pointer is valid until a new object is added, so this is OK
                         }
@@ -205,7 +205,7 @@ void slice(int argc, char **argv)
                             exit(1);
                         }
                         break;
-                    case 'g':
+                    case 'g': //switch settings to current meshgroup only
                         last_settings_object = meshgroup;
                     case 's':
                         {
@@ -218,6 +218,10 @@ void slice(int argc, char **argv)
 
                                 last_settings_object->setSetting(argv[argn], valuePtr);
                             }
+                        }
+                      case 'a':
+                        {
+                          cura::logError("@Qubick: Succeed to modify small part of Engine.\n\nc");
                         }
                         break;
                     default:
@@ -232,7 +236,7 @@ void slice(int argc, char **argv)
         }
         else
         {
-            
+
             cura::logError("Unknown option: %s\n", argv[argn]);
             print_call(argc, argv);
             print_usage();
@@ -245,8 +249,8 @@ void slice(int argc, char **argv)
     { // initialize remaining extruder trains and load the defaults
         meshgroup->createExtruderTrain(extruder_train_nr)->setExtruderTrainDefaults(extruder_train_nr); // create new extruder train objects or use already existing ones
     }
-    
-    
+
+
 #ifndef DEBUG
     try {
 #endif
@@ -254,7 +258,7 @@ void slice(int argc, char **argv)
         // Only ClipperLib currently throws exceptions. And only in case that it makes an internal error.
         meshgroup->finalize();
         log("Loaded from disk in %5.3fs\n", FffProcessor::getInstance()->time_keeper.restart());
-        
+
         //start slicing
         FffProcessor::getInstance()->processMeshGroup(meshgroup);
 
@@ -287,8 +291,8 @@ int main(int argc, char **argv)
 #endif
 
     Progress::init();
-    
-    
+
+
     logCopyright("\n");
     logCopyright("Cura_SteamEngine version %s\n", VERSION);
     logCopyright("Copyright (C) 2014 David Braam\n");
@@ -312,11 +316,11 @@ int main(int argc, char **argv)
         print_usage();
         exit(1);
     }
-    
+
     if (stringcasecompare(argv[1], "connect") == 0)
     {
         connect(argc, argv);
-    } 
+    }
     else if (stringcasecompare(argv[1], "slice") == 0)
     {
         slice(argc, argv);
@@ -333,6 +337,6 @@ int main(int argc, char **argv)
         print_usage();
         exit(1);
     }
-    
+
     return 0;
 }

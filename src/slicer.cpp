@@ -12,16 +12,16 @@ namespace cura {
 void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive_stitching)
 {
     Polygons openPolygonList;
-    
+
     // connect line segments
     for(unsigned int startSegment=0; startSegment < segmentList.size(); startSegment++)
     {
         if (segmentList[startSegment].addedToPolygon)
             continue;
-        
+
         Polygon poly;
         poly.add(segmentList[startSegment].start);
-        
+
         unsigned int segmentIndex = startSegment;
         bool canClose;
         while(true)
@@ -35,7 +35,8 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
             for(unsigned int i=0;i<3;i++)
             {
                 decltype(face_idx_to_segment_index.begin()) it;
-                if (face.connected_face_index[i] > -1 && (it = face_idx_to_segment_index.find(face.connected_face_index[i])) != face_idx_to_segment_index.end())
+                if (face.connected_face_index[i] > -1
+                      && (it = face_idx_to_segment_index.find(face.connected_face_index[i])) != face_idx_to_segment_index.end())
                 {
                     int index = (*it).second;
                     Point p1 = segmentList[index].start;
@@ -61,7 +62,7 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
     }
     //Clear the segmentList to save memory, it is no longer needed after this point.
     segmentList.clear();
-    
+
     // TODO: (?) for mesh surface mode: connect open polygons. Maybe the above algorithm can create two open polygons which are actually connected when the starting segment is in the middle between the two open polygons.
 
     //Connecting polygons that are not closed yet, as models are not always perfect manifold we need to join some stuff up to get proper polygons
@@ -72,7 +73,7 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
         for(unsigned int j=0;j<openPolygonList.size();j++)
         {
             if (openPolygonList[j].size() < 1) continue;
-            
+
             Point diff = openPolygonList[i][openPolygonList[i].size()-1] - openPolygonList[j][0];
             int64_t distSquared = vSize2(diff);
 
@@ -108,7 +109,7 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
             for(unsigned int j=0;j<openPolygonList.size();j++)
             {
                 if (openPolygonList[j].size() < 1) continue;
-                
+
                 Point diff = openPolygonList[i][openPolygonList[i].size()-1] - openPolygonList[j][0];
                 int64_t distSquared = vSize2(diff);
                 if (distSquared < bestScore)
@@ -133,10 +134,10 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
                 }
             }
         }
-        
+
         if (bestScore >= MM2INT(10.0) * MM2INT(10.0))
             break;
-        
+
         if (bestA == bestB)
         {
             polygonList.add(openPolygonList[bestA]);
@@ -168,7 +169,7 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
         // Then find the sortest path over this polygon that can be used to connect the open polygons,
         // And generate a path over this shortest bit to link up the 2 open polygons.
         // (If these 2 open polygons are the same polygon, then the final result is a closed polyon)
-        
+
         while(1)
         {
             unsigned int bestA = -1;
@@ -178,11 +179,11 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
             bestResult.polygonIdx = -1;
             bestResult.pointIdxA = -1;
             bestResult.pointIdxB = -1;
-            
+
             for(unsigned int i=0; i<openPolygonList.size(); i++)
             {
                 if (openPolygonList[i].size() < 1) continue;
-                
+
                 {
                     GapCloserResult res = findPolygonGapCloser(openPolygonList[i][0], openPolygonList[i][openPolygonList[i].size()-1]);
                     if (res.len > 0 && res.len < bestResult.len)
@@ -196,7 +197,7 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
                 for(unsigned int j=0; j<openPolygonList.size(); j++)
                 {
                     if (openPolygonList[j].size() < 1 || i == j) continue;
-                    
+
                     GapCloserResult res = findPolygonGapCloser(openPolygonList[i][0], openPolygonList[j][openPolygonList[j].size()-1]);
                     if (res.len > 0 && res.len < bestResult.len)
                     {
@@ -206,7 +207,7 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
                     }
                 }
             }
-            
+
             if (bestResult.len < POINT_MAX)
             {
                 if (bestA == bestB)
@@ -278,7 +279,7 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
                 polygonList.add(openPolygonList[n]);
         }
     }
-    
+
     for(unsigned int i=0;i<openPolygonList.size();i++)
     {
         if (openPolygonList[i].size() > 0)
@@ -306,9 +307,9 @@ void SlicerLayer::makePolygons(Mesh* mesh, bool keep_none_closed, bool extensive
 
     //Finally optimize all the polygons. Every point removed saves time in the long run.
     polygonList.simplify();
-    
+
     polygonList.removeDegenerateVerts(); // remove verts connected to overlapping line segments
-    
+
     int xy_offset = mesh->getSettingInMicrons("xy_offset");
     if (xy_offset != 0)
     {
@@ -322,12 +323,12 @@ Slicer::Slicer(Mesh* mesh, int initial, int thickness, int layer_count, bool kee
     assert(layer_count > 0);
 
     layers.resize(layer_count);
-    
+
     for(int32_t layer_nr = 0; layer_nr < layer_count; layer_nr++)
     {
         layers[layer_nr].z = initial + thickness * layer_nr;
     }
-    
+
     for(unsigned int mesh_idx = 0; mesh_idx < mesh->faces.size(); mesh_idx++)
     {
         MeshFace& face = mesh->faces[mesh_idx];
@@ -346,18 +347,16 @@ Slicer::Slicer(Mesh* mesh, int initial, int thickness, int layer_count, bool kee
             int32_t z = layer_nr * thickness + initial;
             if (z < minZ) continue;
             if (layer_nr < 0) continue;
-            
+
             SlicerSegment s;
             if (p0.z < z && p1.z >= z && p2.z >= z)
                 s = project2D(p0, p2, p1, z);
             else if (p0.z > z && p1.z < z && p2.z < z)
                 s = project2D(p0, p1, p2, z);
-
             else if (p1.z < z && p0.z >= z && p2.z >= z)
                 s = project2D(p1, p0, p2, z);
             else if (p1.z > z && p0.z < z && p2.z < z)
                 s = project2D(p1, p2, p0, z);
-
             else if (p2.z < z && p1.z >= z && p0.z >= z)
                 s = project2D(p2, p1, p0, z);
             else if (p2.z > z && p1.z < z && p0.z < z)

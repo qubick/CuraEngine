@@ -219,9 +219,9 @@ void slice(int argc, char **argv)
                                 last_settings_object->setSetting(argv[argn], valuePtr);
                             }
                         }
-                      case 'a':
+                      case 'm':
                         {
-                          cura::logError("@Qubick: Succeed to modify small part of Engine.\n\nc");
+                          cura::logError("@Qubick: Let's save material information.\n\nc");
                         }
                         break;
                     default:

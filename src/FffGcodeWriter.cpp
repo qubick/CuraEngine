@@ -599,6 +599,7 @@ void FffGcodeWriter::addMeshLayerToGCode(SliceDataStorage& storage, SliceMeshSto
             processSingleLayerInfill(gcode_layer, mesh, part, layer_nr, infill_line_distance, infill_overlap, infill_angle, infill_line_width);
         }
 
+        //change top_bottom_printing pattern here to add texture
         EFillMethod skin_pattern = mesh->getSettingAsFillMethod("top_bottom_pattern");
         int skin_angle = 45;
         if ((skin_pattern == EFillMethod::LINES || skin_pattern == EFillMethod::ZIG_ZAG) && layer_nr & 1)

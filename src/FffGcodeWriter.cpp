@@ -575,7 +575,7 @@ void FffGcodeWriter::addMeshLayerToGCode(SliceDataStorage& storage, SliceMeshSto
         SliceLayerPart& part = layer->parts[order_idx];
 
         EFillMethod infill_pattern = mesh->getSettingAsFillMethod("infill_pattern");
-        int infill_angle = 45;
+        int infill_angle = 45; //change infill angle and type
         if ((infill_pattern==EFillMethod::LINES || infill_pattern==EFillMethod::ZIG_ZAG) && layer_nr & 1)
         {
             infill_angle += 90;

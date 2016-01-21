@@ -671,6 +671,8 @@ void FffGcodeWriter::processSingleLayerInfill(GCodePlanner& gcode_layer, SliceMe
     sendPolygons(PrintFeatureType::Infill, layer_nr, infill_lines, extrusion_width);
 }
 
+//inset = outermost wall (model) + inner skins
+//if inset=2, 2 lines of polygon to circumfere the model
 void FffGcodeWriter::processInsets(GCodePlanner& gcode_layer, SliceMeshStorage* mesh, SliceLayerPart& part, unsigned int layer_nr, EZSeamType z_seam_type)
 {
     bool compensate_overlap = mesh->getSettingBoolean("travel_compensate_overlapping_walls_enabled");
@@ -683,9 +685,11 @@ void FffGcodeWriter::processInsets(GCodePlanner& gcode_layer, SliceMeshStorage* 
             if (static_cast<int>(layer_nr) == mesh->getSettingAsCount("bottom_layers") && part.insets.size() > 0)
                 gcode_layer.addPolygonsByOptimizer(part.insets[0], &mesh->insetX_config);
         }
-        for(int inset_number=part.insets.size()-1; inset_number>1; inset_number--) //inset is counted from outer most wall to inner most wall
-                                                                                    // changed inset_number>-1 --> inset_number > 0 (for printing 1 inset skin)|| inset_number > 1 (also remove all insets)
-        {
+
+        //inset is counted from outer most wall to inner most wall
+        // changed inset_number>-1 --> inset_number > 0 (for printing 1 inset skin)|| inset_number > 1 (also remove all insets)
+        for(int inset_number=part.insets.size()-1; inset_number>0; inset_number--) 
+                {
             if (inset_number == 0)
             {
                 if (!compensate_overlap)

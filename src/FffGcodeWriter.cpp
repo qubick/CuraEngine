@@ -676,8 +676,11 @@ void FffGcodeWriter::processSingleLayerInfill(GCodePlanner& gcode_layer, SliceMe
 void FffGcodeWriter::processInsets(GCodePlanner& gcode_layer, SliceMeshStorage* mesh, SliceLayerPart& part, unsigned int layer_nr, EZSeamType z_seam_type)
 {
     bool compensate_overlap = mesh->getSettingBoolean("travel_compensate_overlapping_walls_enabled");
+
+
     if (mesh->getSettingAsCount("wall_line_count") > 0)
     {
+      //cura::logError("wall_line_count:%d \n", mesh->getSettingAsCount("wall_line_count"));
         if (mesh->getSettingBoolean("magic_spiralize"))
         {
             if (static_cast<int>(layer_nr) >= mesh->getSettingAsCount("bottom_layers"))
@@ -686,9 +689,18 @@ void FffGcodeWriter::processInsets(GCodePlanner& gcode_layer, SliceMeshStorage* 
                 gcode_layer.addPolygonsByOptimizer(part.insets[0], &mesh->insetX_config);
         }
 
+
+        //*****qubick, get new settings
         //inset is counted from outer most wall to inner most wall
         // changed inset_number>-1 --> inset_number > 0 (for printing 1 inset skin)|| inset_number > 1 (also remove all insets)
-        for(int inset_number=part.insets.size()-1; inset_number>0; inset_number--) 
+
+        // if mesh->outwall=0 endidx = 0
+        // if mesh->outwall=default endidx = -1
+
+        int wall_count = mesh->getSettingAsCount("wall_count");
+        int endIdx = (wall_count == 0) ? 0 : -1;
+
+        for(int inset_number=part.insets.size()-1; inset_number>endIdx; inset_number--)
                 {
             if (inset_number == 0)
             {

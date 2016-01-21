@@ -562,7 +562,7 @@ void FffGcodeWriter::addMeshLayerToGCode(SliceDataStorage& storage, SliceMeshSto
 
     EZSeamType z_seam_type = mesh->getSettingAsZSeamType("z_seam_type");
     PathOrderOptimizer part_order_optimizer(last_position_planned, z_seam_type);
-    for(unsigned int partNr=0; partNr<layer->parts.size(); partNr++) //part is individual closed polygon in one layer
+    for(unsigned int partNr=0; partNr<layer->parts.size(); partNr++) //part is all individual "closed" polygon in one layer
     {
         part_order_optimizer.addPolygon(layer->parts[partNr].insets[0][0]);
     }
@@ -683,7 +683,8 @@ void FffGcodeWriter::processInsets(GCodePlanner& gcode_layer, SliceMeshStorage* 
             if (static_cast<int>(layer_nr) == mesh->getSettingAsCount("bottom_layers") && part.insets.size() > 0)
                 gcode_layer.addPolygonsByOptimizer(part.insets[0], &mesh->insetX_config);
         }
-        for(int inset_number=part.insets.size()-1; inset_number>-1; inset_number--)
+        for(int inset_number=part.insets.size()-1; inset_number>1; inset_number--) //inset is counted from outer most wall to inner most wall
+                                                                                    // changed inset_number>-1 --> inset_number > 0 (for printing 1 inset skin)|| inset_number > 1 (also remove all insets)
         {
             if (inset_number == 0)
             {
@@ -691,7 +692,7 @@ void FffGcodeWriter::processInsets(GCodePlanner& gcode_layer, SliceMeshStorage* 
                 {
                     gcode_layer.addPolygonsByOptimizer(part.insets[0], &mesh->inset0_config, nullptr, z_seam_type);
                 }
-                else
+                else // add outer wall
                 {
                     Polygons& outer_wall = part.insets[0];
                     WallOverlapComputation wall_overlap_computation(outer_wall, mesh->getSettingInMicrons("wall_line_width_0"));

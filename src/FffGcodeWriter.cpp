@@ -598,8 +598,7 @@ void FffGcodeWriter::addMeshLayerToGCode(SliceDataStorage& storage, SliceMeshSto
             processMultiLayerInfill(gcode_layer, mesh, part, layer_nr, infill_line_distance, infill_overlap, infill_angle, infill_line_width);
             processSingleLayerInfill(gcode_layer, mesh, part, layer_nr, infill_line_distance, infill_overlap, infill_angle, infill_line_width);
         }
-
-        //change top_bottom_printing pattern here to add texture
+/*
         EFillMethod skin_pattern = mesh->getSettingAsFillMethod("top_bottom_pattern");
         int skin_angle = 45;
         if ((skin_pattern == EFillMethod::LINES || skin_pattern == EFillMethod::ZIG_ZAG) && layer_nr & 1)
@@ -608,6 +607,16 @@ void FffGcodeWriter::addMeshLayerToGCode(SliceDataStorage& storage, SliceMeshSto
         }
         if (skin_alternate_rotation && ( layer_nr / 2 ) & 1)
             skin_angle -= 45;
+*/
+          //*****qubick, change top_bottom_printing pattern here to add texture
+          std::string top_pattern = mesh->getSettingString("top_pattern");
+
+          int skin_angle = 45;
+          if(top_pattern == "horizontal"){
+            skin_angle += 45;
+          } else if(top_pattern == "vertical"){
+            skin_angle -= 45;
+          }
 
         int64_t skin_overlap = 0;
         processSkin(gcode_layer, mesh, part, layer_nr, skin_overlap, skin_angle, mesh->skin_config.getLineWidth());

@@ -245,6 +245,9 @@ void FffGcodeWriter::processNextMeshGroupCode(SliceDataStorage& storage)
     gcode.writeFanCommand(0);
     gcode.resetExtrusionValue();
     gcode.setZ(max_object_height + 5000);
+    // to adjust extrusion (traverse) speed; gcodeExport.cpp line 350
+    // extrusion_per_mm = extrusion_mm3_per_mm / extruder_attr[current_extruder].filament_area
+    // 1. change traverse speed or 2. change extruder_attr
     gcode.writeMove(gcode.getPositionXY(), getSettingInMillimetersPerSecond("speed_travel"), 0);
     gcode.writeMove(Point(storage.model_min.x, storage.model_min.y), getSettingInMillimetersPerSecond("speed_travel"), 0);
 }

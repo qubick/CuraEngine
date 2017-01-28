@@ -16,6 +16,9 @@ function main() {
   var partLower = original.cutByPlane(cutPlane); //already printed
   var partUpper = original.cutByPlane(cutPlane.flipped()); //not yet printed
 
+  //localize the inserted mesh
+  inserted.translate([locationX, locationY, 0])
+          .rotate([lotationX, lotationY, 0]); //do we want to care z-rotation for insertion?
 
   //upperPart geometry adjustment
   var newGeometry = partUpper.subtract(inserted);

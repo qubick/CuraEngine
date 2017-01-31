@@ -5,7 +5,7 @@ function main() {
   var locationX = 2; //assume these are returned by localization
   var locationY = 3;
   var rotationX = 30;
-  var rotationY = 20;
+  var rotationY = 60;
 
   //inputs
   var original = CSG.cube({radius:10}); //the original model
@@ -18,11 +18,16 @@ function main() {
 
   //localize the inserted mesh
   inserted.translate([locationX, locationY, 0])
-          .rotate([lotationX, lotationY, 0]); //do we want to care z-rotation for insertion?
+          .rotateX(rotationX)
+          .rotateY(rotationY); //do we want to care z-rotation for insertion?
 
   //upperPart geometry adjustment
   var newGeometry = partUpper.subtract(inserted);
 
+  //geometry operations for further intervention
+  // 1. ensure space to avoid collision with extruder
+  // 2. define printable surface, etc.
+  // ...
 
   return union(newGeometry,
                 original.translate([30,0,0])
